@@ -1,7 +1,7 @@
 {
   "name": "spinit-js",
-  "version": "1.0.0",
-  "description": "git init",
+  "version": "1.0.1",
+  "description": "A lightweight, high-performance JavaScript library for 360-degree image rotation.",
   "main": "src/index.js",
   "type": "module",
   "scripts": {

@@ -298,7 +298,7 @@ export class SpinIT {
         return;
       }
 
-      this.updateFrame(-Math.max(1, this.options.sensitivity));
+      this.updateFrame(-this.options.sensitivity);
       
       if (targetFrame !== null && this.currentFrame === targetFrame) {
         this.#stopAutoPlay();
