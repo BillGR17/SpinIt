@@ -1,0 +1,30 @@
+{
+  "name": "spinit-js",
+  "version": "1.0.0",
+  "description": "git init",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "test": "node test/server.js"
+  },
+  "keywords": [
+    "spritespin",
+    "360",
+    "rotation",
+    "image",
+    "viewer"
+  ],
+  "author": "BillGR17",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BillGR17/SpinIt.git"
+  },
+  "bugs": {
+    "url": "https://github.com/BillGR17/SpinIt/issues"
+  },
+  "homepage": "https://github.com/BillGR17/SpinIt#readme",
+  "files": [
+    "src"
+  ]
+}
