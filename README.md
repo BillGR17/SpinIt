@@ -62,6 +62,7 @@ const spinit = new SpinIT("#spinit-container", ["img_##.jpg", 1, 90], {
 | `autoplay` | `Boolean` \| `Number` | `true` | If true, spins automatically until user interaction. If a number, auto-spins until that frame index. |
 | `autoplaySpeed` | `Number` | `24` | Autoplay speed in Frames Per Second (FPS). |
 | `debug` | `Boolean` | `false` | Enables debug mode. |
+| `lazyload` | `Boolean` | `true` | Enables lazy load the SpinIT container. |
 
 
 ## License

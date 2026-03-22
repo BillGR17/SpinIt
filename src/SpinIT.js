@@ -30,6 +30,7 @@ export class SpinIT {
       preload: options.preload ?? "all",
       autoplay: options.autoplay ?? true,
       autoplaySpeed: options.autoplaySpeed ?? 24,
+      lazyload: options.lazyload ?? true,
       debug: options.debug ?? false
     };
 
@@ -48,8 +49,32 @@ export class SpinIT {
 
     this.canvas = null;
     this.ctx = null;
+    this.observer = null;
+    this.isDestroyed = false;
 
-    this.#init(source);
+    if (this.options.lazyload && 'IntersectionObserver' in window) {
+      this.#setupLazyLoad(source);
+    } else {
+      this.#init(source);
+    }
+  }
+
+  #setupLazyLoad(source) {
+    this.#log("SpinIT: Setting up lazyload...");
+
+    this.observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          this.#log("SpinIT: Container is visible, initializing...");
+          this.#init(source);
+          this.observer.unobserve(this.container);
+          this.observer.disconnect();
+          this.observer = null;
+        }
+      });
+    }, { rootMargin: '50px' });
+
+    this.observer.observe(this.container);
   }
 
   #log(...args) {
@@ -62,7 +87,7 @@ export class SpinIT {
 
   async #init(source) {
     this.#log("SpinIT: Initializing with source:", source);
-    
+
     // 1. Inject styles and show loader
     Renderer.injectStyles();
     Renderer.showLoader(this.container);
@@ -72,10 +97,12 @@ export class SpinIT {
     const preloadCount = isPreloadingAll ? 1 : Math.max(1, this.options.preload);
 
     const preloadUrls = urls.slice(0, preloadCount);
-    
+
     // 2. Preload the specified number of images to show something immediately
     const preloadedImages = await Loader.preloadImages(preloadUrls, this.options.debug);
-    
+
+    if (this.isDestroyed) return;
+
     if (preloadedImages.length === 0) {
       this.#error("SpinIT Error: Could not load the initial images.");
       Renderer.hideLoader(this.container);
@@ -85,10 +112,10 @@ export class SpinIT {
     // Initialize this.images array with the correct length to allow correct math in physics
     this.images = new Array(urls.length);
     for (let i = 0; i < preloadedImages.length; i++) {
-        this.images[i] = preloadedImages[i];
+      this.images[i] = preloadedImages[i];
     }
     const { width, height } = preloadedImages[0];
-    
+
     // 3. Initialize canvas
     const { canvas, ctx } = Renderer.initCanvas(this.container, width, height, this.options.responsive);
     this.canvas = canvas;
@@ -109,6 +136,7 @@ export class SpinIT {
       this.#log("SpinIT: First frame rendered with blur. Loading remaining images...");
 
       Loader.preloadImages(urls, this.options.debug).then(allImages => {
+        if (this.isDestroyed) return;
         this.#log(`SpinIT: Preloaded ${allImages.length} images. Clearing loading state...`);
         this.images = allImages;
         Renderer.applyBlur(this.canvas, false);
@@ -128,10 +156,11 @@ export class SpinIT {
       const remainingUrls = urls.slice(preloadCount);
       const remainingPromises = remainingUrls.map((url, i) => {
         return Loader.preloadImages([url], this.options.debug).then(([img]) => {
+          if (this.isDestroyed) return;
           const index = preloadCount + i;
           this.images[index] = img;
           if (this.currentFrame === index) {
-              this.render();
+            this.render();
           }
         });
       });
@@ -255,11 +284,11 @@ export class SpinIT {
    */
   render() {
     Renderer.renderFrame(
-      this.ctx, 
-      this.images[this.currentFrame], 
-      this.canvas.width, 
-      this.canvas.height, 
-      this.options.debug, 
+      this.ctx,
+      this.images[this.currentFrame],
+      this.canvas.width,
+      this.canvas.height,
+      this.options.debug,
       this.currentFrame
     );
   }
@@ -268,7 +297,13 @@ export class SpinIT {
    * Destroys the SpinIT instance and cleans up.
    */
   destroy() {
+    this.isDestroyed = true;
     this.#stopAutoPlay();
+    if (this.observer) {
+      this.observer.unobserve(this.container);
+      this.observer.disconnect();
+      this.observer = null;
+    }
     if (this.resizeObserver) {
       this.resizeObserver.disconnect();
     }
@@ -283,9 +318,9 @@ export class SpinIT {
 
   #startAutoPlay() {
     if (this.options.autoplay === false) return;
-    
+
     this.isAutoPlaying = true;
-    
+
     let targetFrame = null;
     if (typeof this.options.autoplay === 'number') {
       targetFrame = this.options.autoplay;
@@ -299,7 +334,7 @@ export class SpinIT {
       }
 
       this.updateFrame(-this.options.sensitivity);
-      
+
       if (targetFrame !== null && this.currentFrame === targetFrame) {
         this.#stopAutoPlay();
       } else if (!this.options.loop && this.currentFrame === this.images.length - 1) {
