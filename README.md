@@ -36,7 +36,7 @@ npm install spinit-js
 2. **Initialize SpinIt**:
 
 ```javascript
-import { SpinIT } from 'spinit-js';
+import { SpinIT } from "spinit-js";
 
 // container, [urlTemplate, startFrame, endFrame], options
 const spinit = new SpinIT("#spinit-container", ["img_##.jpg", 1, 90], {
