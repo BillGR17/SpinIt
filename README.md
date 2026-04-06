@@ -67,6 +67,8 @@ const spinit = new SpinIT("#spinit-container", ["img_##.jpg", 1, 90], {
 | `autoplaySpeed` | `Number` | `24` | Autoplay speed in Frames Per Second (FPS). |
 | `debug` | `Boolean` | `false` | Enables debug mode. |
 | `lazyload` | `Boolean` | `true` | Enables lazy load the SpinIT container. |
+| `gyro` | `Boolean` | `true` | Enables device gyroscope (orientation) controls to spin the image by leaning device left/right on mobile devices. |
+| `gyroSensitivity` | `Number` | `2.0` | Sensitivity for gyroscope controls. Higher values result in faster spinning when tilting the device. |
 
 
 ## License

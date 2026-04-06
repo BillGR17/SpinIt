@@ -37,4 +37,39 @@ export class EventManager {
     element.addEventListener("pointerup", stopDrag);
     element.addEventListener("pointercancel", stopDrag);
   }
+
+  /**
+   * Sets up device orientation (gyroscope) events for mobile interaction.
+   * @param {Object} callbacks - Object containing callback functions.
+   * @param {Function} callbacks.onOrientationChange - Called on orientation change with delta gamma.
+   * @returns {Function} The event listener function to be used for cleanup.
+   */
+  static setupDeviceOrientation({ onOrientationChange }) {
+    if (typeof window === 'undefined' || !window.DeviceOrientationEvent) return null;
+
+    let lastGamma = null;
+
+    const handleOrientation = (e) => {
+      let gamma = e.gamma; // [-90, 90]
+      if (gamma === null) return;
+
+      if (lastGamma !== null) {
+        let dGamma = gamma - lastGamma;
+
+        // Handle possible wrap-around issues around 90 / -90
+        if (dGamma > 90) dGamma -= 180;
+        else if (dGamma < -90) dGamma += 180;
+
+        if (Math.abs(dGamma) > 0.05) {
+          onOrientationChange(dGamma);
+        }
+      }
+      lastGamma = gamma;
+    };
+
+    window.addEventListener('deviceorientation', handleOrientation);
+
+    // Return handler for cleanup
+    return handleOrientation;
+  }
 }

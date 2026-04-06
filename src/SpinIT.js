@@ -31,6 +31,8 @@ export class SpinIT {
       autoplay: options.autoplay ?? true,
       autoplaySpeed: options.autoplaySpeed ?? 24,
       lazyload: options.lazyload ?? true,
+      gyro: options.gyro ?? true,
+      gyroSensitivity: options.gyroSensitivity ?? 2.0,
       debug: options.debug ?? false
     };
 
@@ -50,6 +52,7 @@ export class SpinIT {
     this.canvas = null;
     this.ctx = null;
     this.observer = null;
+    this.gyroCleanup = null;
     this.isDestroyed = false;
 
     if (this.options.lazyload && 'IntersectionObserver' in window) {
@@ -217,6 +220,21 @@ export class SpinIT {
         }
       }
     });
+
+    if (this.options.gyro) {
+      this.gyroCleanup = EventManager.setupDeviceOrientation({
+        onOrientationChange: (dGamma) => {
+          this.#log("SpinIT: Device tilted by", dGamma);
+          this.#stopAutoPlay();
+          
+          if (this.animationId) {
+            cancelAnimationFrame(this.animationId);
+          }
+
+          this.updateFrame(dGamma * this.options.gyroSensitivity);
+        }
+      });
+    }
   }
 
   /**
@@ -309,6 +327,10 @@ export class SpinIT {
     }
     if (this.animationId) {
       cancelAnimationFrame(this.animationId);
+    }
+    if (this.gyroCleanup) {
+      window.removeEventListener('deviceorientation', this.gyroCleanup);
+      this.gyroCleanup = null;
     }
     // Remove canvas if needed, or other cleanup...
     if (this.canvas && this.canvas.parentNode) {
